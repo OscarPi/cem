@@ -141,6 +141,9 @@ def train_model(
             config=config,
             reinit=True
         ) as run:
+            artifact = wandb.Artifact(name="results_dir", type="results")
+            artifact.add_dir(local_path=result_dir)
+            run.log_artifact(artifact)  
             model_saved_path = os.path.join(
                 result_dir,
                 f'{full_run_name}.pt'
