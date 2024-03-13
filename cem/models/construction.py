@@ -237,30 +237,57 @@ def construct_model(
         c_extractor_arch = config["c_extractor_arch"]
 
     # Create model
-    return model_cls(
-        n_concepts=n_concepts,
-        n_tasks=n_tasks,
-        weight_loss=(
-            torch.FloatTensor(imbalance)
-            if config['weight_loss'] and (imbalance is not None)
-            else None
-        ),
-        task_class_weights=(
-            torch.FloatTensor(task_class_weights)
-            if (task_class_weights is not None)
-            else None
-        ),
-        concept_loss_weight=config['concept_loss_weight'],
-        task_loss_weight=config.get('task_loss_weight', 1.0),
-        learning_rate=config['learning_rate'],
-        weight_decay=config['weight_decay'],
-        c_extractor_arch=utils.wrap_pretrained_model(c_extractor_arch),
-        optimizer=config['optimizer'],
-        top_k_accuracy=config.get('top_k_accuracy'),
-        output_latent=output_latent,
-        output_interventions=output_interventions,
-        **extra_params,
-    )
+    if config.get("reconstruction_arch", None) is not None:
+        return model_cls(
+            n_concepts=n_concepts,
+            n_tasks=n_tasks,
+            weight_loss=(
+                torch.FloatTensor(imbalance)
+                if config['weight_loss'] and (imbalance is not None)
+                else None
+            ),
+            task_class_weights=(
+                torch.FloatTensor(task_class_weights)
+                if (task_class_weights is not None)
+                else None
+            ),
+            concept_loss_weight=config['concept_loss_weight'],
+            task_loss_weight=config.get('task_loss_weight', 1.0),
+            learning_rate=config['learning_rate'],
+            weight_decay=config['weight_decay'],
+            c_extractor_arch=utils.wrap_pretrained_model(c_extractor_arch),
+            reconstruction_arch=config["reconstruction_arch"],
+            optimizer=config['optimizer'],
+            top_k_accuracy=config.get('top_k_accuracy'),
+            output_latent=output_latent,
+            output_interventions=output_interventions,
+            **extra_params,
+        )
+    else:
+        return model_cls(
+            n_concepts=n_concepts,
+            n_tasks=n_tasks,
+            weight_loss=(
+                torch.FloatTensor(imbalance)
+                if config['weight_loss'] and (imbalance is not None)
+                else None
+            ),
+            task_class_weights=(
+                torch.FloatTensor(task_class_weights)
+                if (task_class_weights is not None)
+                else None
+            ),
+            concept_loss_weight=config['concept_loss_weight'],
+            task_loss_weight=config.get('task_loss_weight', 1.0),
+            learning_rate=config['learning_rate'],
+            weight_decay=config['weight_decay'],
+            c_extractor_arch=utils.wrap_pretrained_model(c_extractor_arch),
+            optimizer=config['optimizer'],
+            top_k_accuracy=config.get('top_k_accuracy'),
+            output_latent=output_latent,
+            output_interventions=output_interventions,
+            **extra_params,
+        )
 
 
 def construct_sequential_models(

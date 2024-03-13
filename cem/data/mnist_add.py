@@ -260,7 +260,7 @@ def load_mnist_addition(
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
     np.random.seed(seed)
-    pytorch_lightning.utilities.seed.seed_everything(seed)
+    seed_everything(seed)
 
     concept_groups = []
     for operand_digits in selected_digits:

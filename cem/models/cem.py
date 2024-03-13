@@ -26,10 +26,12 @@ class ConceptEmbeddingModel(ConceptBottleneckModel):
         shared_prob_gen=True,
         concept_loss_weight=1,
         task_loss_weight=1,
+        reconstruction_loss_weight=1,
 
         c2y_model=None,
         c2y_layers=None,
         c_extractor_arch=utils.wrap_pretrained_model(resnet50),
+        reconstruction_arch=None,
         output_latent=False,
 
         optimizer="adam",
@@ -132,6 +134,7 @@ class ConceptEmbeddingModel(ConceptBottleneckModel):
         self.output_interventions = output_interventions
         self.intervention_policy = intervention_policy
         self.pre_concept_model = c_extractor_arch(output_dim=None)
+        self.reconstruction_model = None if reconstruction_arch is None else reconstruction_arch(output_dim=None)
         self.training_intervention_prob = training_intervention_prob
         self.output_latent = output_latent
         if self.training_intervention_prob != 0:
@@ -150,6 +153,7 @@ class ConceptEmbeddingModel(ConceptBottleneckModel):
         else:
             self.inactive_intervention_values = torch.ones(n_concepts)
         self.task_loss_weight = task_loss_weight
+        self.reconstruction_loss_weight = reconstruction_loss_weight
         self.concept_context_generators = torch.nn.ModuleList()
         self.concept_prob_generators = torch.nn.ModuleList()
         self.shared_prob_gen = shared_prob_gen
@@ -247,6 +251,7 @@ class ConceptEmbeddingModel(ConceptBottleneckModel):
                 weight=task_class_weights
             )
         )
+        self.loss_reconstruction = torch.nn.MSELoss(reduction="none")
         self.concept_loss_weight = concept_loss_weight
         self.momentum = momentum
         self.learning_rate = learning_rate
@@ -403,4 +408,6 @@ class ConceptEmbeddingModel(ConceptBottleneckModel):
         if output_embeddings:
             tail_results.append(contexts[:, :, :self.emb_size])
             tail_results.append(contexts[:, :, self.emb_size:])
+        if self.reconstruction_model is not None:
+            tail_results.append(pre_c)
         return tuple([c_sem, c_pred, y] + tail_results)

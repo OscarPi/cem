@@ -218,6 +218,8 @@ def train_model(
                     not isinstance(config_copy["c_extractor_arch"], str)
                 ):
                     del config_copy["c_extractor_arch"]
+                if "reconstruction_arch" in config_copy:
+                    del config_copy["reconstruction_arch"]
                 joblib.dump(
                     config_copy,
                     os.path.join(
@@ -385,6 +387,8 @@ def train_model(
                 not isinstance(config_copy["c_extractor_arch"], str)
             ):
                 del config_copy["c_extractor_arch"]
+            if "reconstruction_arch" in config_copy:
+                del config_copy["reconstruction_arch"]
             joblib.dump(config_copy, os.path.join(
                 result_dir,
                 f'{full_run_name}_experiment_config.joblib'

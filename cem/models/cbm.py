@@ -19,6 +19,7 @@ class ConceptBottleneckModel(pl.LightningModule):
         n_tasks,
         concept_loss_weight=0.01,
         task_loss_weight=1,
+        reconstruction_loss_weight=0.01,
 
         extra_dims=0,
         bool=False,
@@ -29,6 +30,7 @@ class ConceptBottleneckModel(pl.LightningModule):
 
         x2c_model=None,
         c_extractor_arch=utils.wrap_pretrained_model(resnet50),
+        reconstruction_arch=None,
         c2y_model=None,
         c2y_layers=None,
 
@@ -150,6 +152,7 @@ class ConceptBottleneckModel(pl.LightningModule):
         self.intervention_policy = intervention_policy
         self.output_latent = output_latent
         self.output_interventions = output_interventions
+        self.reconstruction_model = None if reconstruction_arch is None else reconstruction_arch(output_dim=(n_concepts + extra_dims))
         if x2c_model is not None:
             # Then this is assumed to be a module already provided as
             # the input to concepts method
@@ -229,9 +232,11 @@ class ConceptBottleneckModel(pl.LightningModule):
                 pos_weight=task_class_weights
             )
         )
+        self.loss_reconstruction = torch.nn.MSELoss(reduction="none")
         self.bool = bool
         self.concept_loss_weight = concept_loss_weight
         self.task_loss_weight = task_loss_weight
+        self.reconstruction_loss_weight = reconstruction_loss_weight
         self.momentum = momentum
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
@@ -655,12 +660,17 @@ class ConceptBottleneckModel(pl.LightningModule):
                 concept_loss = self.loss_concept(c_sem, c)
                 concept_loss_scalar = concept_loss.detach()
             else:
+                c_used = torch.where(
+                    torch.logical_or(c == 0, c == 1),
+                    c,
+                    torch.zeros_like(c),
+                ) # This forces zero loss when c is uncertain
                 c_sem_used = torch.where(
                     torch.logical_or(c == 0, c == 1),
                     c_sem,
-                    c,
-                ) # This forces zero loss when c is uncertain
-                concept_loss = self.loss_concept(c_sem_used, c)
+                    torch.zeros_like(c_sem),
+                )
+                concept_loss = self.loss_concept(c_sem_used, c_used)
                 concept_loss_scalar = concept_loss.detach()
             loss = self.concept_loss_weight * concept_loss + task_loss + \
                 self._extra_losses(
@@ -685,6 +695,14 @@ class ConceptBottleneckModel(pl.LightningModule):
                 prev_interventions=prev_interventions,
             )
             concept_loss_scalar = 0.0
+
+        if self.reconstruction_model is not None:
+            pre_c = outputs[-1]
+            x_hat = self.reconstruction_model(pre_c)
+            reconstruction_loss = self.loss_reconstruction(x, x_hat)
+            reconstruction_loss = reconstruction_loss.sum(dim=list(range(1, reconstruction_loss.dim()))).mean(dim=[0])
+            loss += self.reconstruction_loss_weight * reconstruction_loss
+
         # compute accuracy
         (c_accuracy, c_auc, c_f1), (y_accuracy, y_auc, y_f1) = compute_accuracy(
             c_sem,
