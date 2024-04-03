@@ -9,7 +9,6 @@ import torchvision
 
 from pytorch_lightning import seed_everything
 
-
 def inject_uncertainty(
     *datasets,
     uncertain_width=0,
@@ -453,7 +452,6 @@ def load_mnist_addition(
         return train_dl, val_dl, test_dl
     return train_dl, test_dl
 
-
 def generate_data(
         config,
         root_dir="mnist",
@@ -616,3 +614,52 @@ def generate_data(
         imbalance,
         (num_concepts, n_tasks, concept_group_map)
     )
+
+def load_dataset(config):
+    train_dl, val_dl, test_dl, imbalance, (n_concepts, n_tasks, concept_map) = \
+        generate_data(
+            config=config,
+            seed=42,
+            output_dataset_vars=True,
+            root_dir="/Users/oscar/Documents/ticks/2023-2024/Project/datasets/mnist",
+        )
+    
+    config["imbalance"] = imbalance
+    config["n_concepts"] = n_concepts
+    config["n_tasks"] = n_tasks
+    config["concept_map"] = concept_map
+
+    return train_dl, val_dl, test_dl
+
+loaded_datasets = {}
+loaded_dataset_metadata = {}
+def dls(n_digits, n_concepts, sum_as_label=False):
+    if (n_digits, n_concepts, sum_as_label) not in loaded_datasets:
+        config = {
+            "num_workers": 8,
+            "selected_digits": [[0, 1]] * n_digits,
+            "num_operands": n_digits,
+            "threshold_labels": None if sum_as_label else int(np.ceil(n_digits / 2)),
+            "sampling_percent": n_concepts / n_digits,
+            "sampling_groups": True,
+            "train_dataset_size": 10000,
+            "batch_size": 2048,
+            "noise_level": 0.0,
+        }
+        loaded_datasets[(n_digits, n_concepts, sum_as_label)] = load_dataset(config)
+        loaded_dataset_metadata[(n_digits, n_concepts, sum_as_label)] = {
+            "imbalance": config["imbalance"],
+            "n_concepts": config["n_concepts"],
+            "n_tasks": config["n_tasks"],
+            "concept_map": config["concept_map"]
+        }
+    return loaded_datasets[(n_digits, n_concepts, sum_as_label)]
+
+def train_dl(n_digits, n_concepts, sum_as_label=False):
+    return dls(n_digits, n_concepts, sum_as_label)[0]
+
+def val_dl(n_digits, n_concepts, sum_as_label=False):
+    return dls(n_digits, n_concepts, sum_as_label)[1]
+
+def test_dl(n_digits, n_concepts, sum_as_label=False):
+    return dls(n_digits, n_concepts, sum_as_label)[2]
