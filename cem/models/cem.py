@@ -134,7 +134,7 @@ class ConceptEmbeddingModel(ConceptBottleneckModel):
         self.output_interventions = output_interventions
         self.intervention_policy = intervention_policy
         self.pre_concept_model = c_extractor_arch(output_dim=None)
-        self.reconstruction_model = None if reconstruction_arch is None else reconstruction_arch(output_dim=None)
+        self.reconstruction_model = None if reconstruction_arch is None else reconstruction_arch(n_concepts * emb_size)
         self.training_intervention_prob = training_intervention_prob
         self.output_latent = output_latent
         if self.training_intervention_prob != 0:
@@ -408,6 +408,5 @@ class ConceptEmbeddingModel(ConceptBottleneckModel):
         if output_embeddings:
             tail_results.append(contexts[:, :, :self.emb_size])
             tail_results.append(contexts[:, :, self.emb_size:])
-        if self.reconstruction_model is not None:
-            tail_results.append(pre_c)
+
         return tuple([c_sem, c_pred, y] + tail_results)

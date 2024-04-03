@@ -152,7 +152,7 @@ class ConceptBottleneckModel(pl.LightningModule):
         self.intervention_policy = intervention_policy
         self.output_latent = output_latent
         self.output_interventions = output_interventions
-        self.reconstruction_model = None if reconstruction_arch is None else reconstruction_arch(output_dim=(n_concepts + extra_dims))
+        self.reconstruction_model = None if reconstruction_arch is None else reconstruction_arch(n_concepts + extra_dims)
         if x2c_model is not None:
             # Then this is assumed to be a module already provided as
             # the input to concepts method
@@ -697,8 +697,8 @@ class ConceptBottleneckModel(pl.LightningModule):
             concept_loss_scalar = 0.0
 
         if self.reconstruction_model is not None:
-            pre_c = outputs[-1]
-            x_hat = self.reconstruction_model(pre_c)
+            c_pred = outputs[1]
+            x_hat = self.reconstruction_model(c_pred)
             reconstruction_loss = self.loss_reconstruction(x, x_hat)
             reconstruction_loss = reconstruction_loss.sum(dim=list(range(1, reconstruction_loss.dim()))).mean(dim=[0])
             loss += self.reconstruction_loss_weight * reconstruction_loss
