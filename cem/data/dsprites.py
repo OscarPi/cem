@@ -17,6 +17,19 @@ def quadrant_shape(latents):
 
     return c, y
 
+def quadrant_shape_shape_hidden(latents):
+    loc = latents[:, (False, False, False, False, True, True)] > 15
+    quadrant = loc[:, 0] * 2 + loc[:, 1]
+    shape = latents[:, (False, True, False, False, False, False)].squeeze()
+    c = torch.stack((
+        quadrant == 0,
+        quadrant == 1,
+        quadrant == 2,
+        quadrant == 3), dim=1).float()
+    y = shape*4 + quadrant
+
+    return c, y
+
 loaded_datasets = {}
 def load_dsprites(name, source, concepts_and_label, filter=None, permutation=None):
     dataset_zip = np.load(source)

@@ -124,13 +124,15 @@ def get_mnist_config(selected_digits, threshold_labels, sampling_percent, recons
         "reconstruction_arch": get_mnist_reconstruction_arch(input_shape, len(selected_digits)) if reconstruction_loss else None
     }
 
-def get_dsprites_config(reconstruction_loss=True):
+def get_dsprites_config(n_concepts, n_tasks, reconstruction_loss=True):
     batch_size = 512
     return {
         **get_base_config(),
         "batch_size": batch_size,
         "c_extractor_arch": get_dsprites_c_extractor_arch(),
-        "reconstruction_arch": get_dsprites_reconstruction_arch() if reconstruction_loss else None
+        "reconstruction_arch": get_dsprites_reconstruction_arch() if reconstruction_loss else None,
+        "n_concepts": n_concepts,
+        "n_tasks": n_tasks
     }
 
 def train_model(config, train_dl, val_dl, test_dl, save_path):
@@ -195,7 +197,7 @@ def train_mnist_model(n_digits, n_concepts, save_path, sum_as_label=False, recon
         mnist.test_dl(n_digits, n_concepts, sum_as_label),
         save_path)
 
-def train_dsprites_model(dsprites_name, save_path, reconstruction_loss=True):
+def train_dsprites_model(dsprites_name, n_concepts, n_tasks, save_path, reconstruction_loss=True):
     train_dl, val_dl, test_dl = dsprites.get_dsprites(dsprites_name)
-    config = get_dsprites_config(reconstruction_loss=reconstruction_loss)
+    config = get_dsprites_config(n_concepts, n_tasks, reconstruction_loss=reconstruction_loss)
     return train_model(config, train_dl, val_dl, test_dl, save_path)

@@ -1,4 +1,6 @@
-from ..utils import *
+import os, sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.abspath(""))))
+from utils import *
 from cem.concept_discovery.utils import *
 import cem.data.dsprites as dsprites
 import cem.data.mnist_add as mnist
@@ -14,7 +16,7 @@ dsprites_train_dl, dsprites_val_dl, dsprites_test_dl = dsprites.load_dsprites(
 
 mnist.set_root_dir("../../../../datasets/mnist")
 
-dsprites_model, dsprites_model_test_results = train_dsprites_model("quadrant_shape_shape_hidden", save_path="dsprites_model")
+dsprites_model, dsprites_model_test_results = train_dsprites_model("quadrant_shape_shape_hidden", 4, 12, save_path="dsprites_model")
 _, dsprites_embs, _ = calculate_embeddings(dsprites_model, [dsprites_train_dl], 16)
 np.save("dsprites_embs.npy", dsprites_embs)
 
