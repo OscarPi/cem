@@ -8,23 +8,48 @@ import cem.data.dsprites as dsprites
 def get_dsprites_c_extractor_arch():
     def c_extractor_arch(output_dim):
         output_dim = output_dim or 128
-        return torch.nn.Sequential(*[
+        return torch.nn.Sequential(
+            torch.nn.Conv2d(in_channels=1, out_channels=16, kernel_size=(3,3), padding='same'),
+            torch.nn.BatchNorm2d(num_features=16),
+            torch.nn.LeakyReLU(),
+            torch.nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
+            torch.nn.BatchNorm2d(num_features=16),
+            torch.nn.LeakyReLU(),
+            torch.nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
+            torch.nn.BatchNorm2d(num_features=16),
+            torch.nn.LeakyReLU(),
+            torch.nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
+            torch.nn.BatchNorm2d(num_features=16),
+            torch.nn.LeakyReLU(),
             torch.nn.Flatten(),
-            torch.nn.Linear(64*64, 400),
-            torch.nn.LeakyReLU(),
-            torch.nn.Linear(400, 400),
-            torch.nn.LeakyReLU(),
-            torch.nn.Linear(
-                400,
-                output_dim,
-            ),
-        ])
+            torch.nn.Linear(64 * 64 * 16, output_dim)
+        )
     return c_extractor_arch
+
+def get_dsprites_reconstruction_arch():
+    def reconstruction_arch(bottleneck_size):
+        return torch.nn.Sequential(
+            torch.nn.Linear(bottleneck_size, 64*64*16),
+            torch.nn.Unflatten(1, (16, 64, 64)),
+            torch.nn.LeakyReLU(),
+            torch.nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
+            torch.nn.BatchNorm2d(num_features=16),
+            torch.nn.LeakyReLU(),
+            torch.nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
+            torch.nn.BatchNorm2d(num_features=16),
+            torch.nn.LeakyReLU(),
+            torch.nn.Flatten(),
+            torch.nn.Linear(64 * 64 * 16, 64*64),
+            torch.nn.Unflatten(1, (64, 64)),
+            torch.nn.Sigmoid()
+        )
+
+    return reconstruction_arch
 
 def get_mnist_c_extractor_arch(input_shape, num_operands):
     def c_extractor_arch(output_dim):
         output_dim = output_dim or 128
-        return torch.nn.Sequential(*[
+        return torch.nn.Sequential(
             torch.nn.Flatten(),
             torch.nn.Linear(int(np.prod(input_shape[2:]))*num_operands, 400),
             torch.nn.LeakyReLU(),
@@ -34,12 +59,12 @@ def get_mnist_c_extractor_arch(input_shape, num_operands):
                 400,
                 output_dim,
             ),
-        ])
+        )
     return c_extractor_arch
 
 def get_mnist_reconstruction_arch(input_shape, num_operands):
     def reconstruction_arch(bottleneck_size):
-        return torch.nn.Sequential(*[
+        return torch.nn.Sequential(
             torch.nn.Linear(bottleneck_size, 400),
             torch.nn.LeakyReLU(),
             torch.nn.Linear(400, 400),
@@ -47,21 +72,7 @@ def get_mnist_reconstruction_arch(input_shape, num_operands):
             torch.nn.Linear(400, int(np.prod(input_shape[2:]))*num_operands),
             torch.nn.Unflatten(1, (num_operands, input_shape[2], input_shape[3])),
             torch.nn.Sigmoid()
-        ])
-
-    return reconstruction_arch
-
-def get_dsprites_reconstruction_arch():
-    def reconstruction_arch(bottleneck_size):
-        return torch.nn.Sequential(*[
-            torch.nn.Linear(bottleneck_size, 400),
-            torch.nn.LeakyReLU(),
-            torch.nn.Linear(400, 400),
-            torch.nn.LeakyReLU(),
-            torch.nn.Linear(400, 64*64),
-            torch.nn.Unflatten(1, (64, 64)),
-            torch.nn.Sigmoid()
-        ])
+        )
 
     return reconstruction_arch
 
