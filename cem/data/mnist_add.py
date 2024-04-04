@@ -615,13 +615,18 @@ def generate_data(
         (num_concepts, n_tasks, concept_group_map)
     )
 
+root_dir = None
+def set_root_dir(new_root_dir):
+    global root_dir
+    root_dir = new_root_dir
+
 def load_dataset(config):
     train_dl, val_dl, test_dl, imbalance, (n_concepts, n_tasks, concept_map) = \
         generate_data(
             config=config,
             seed=42,
             output_dataset_vars=True,
-            root_dir="/Users/oscar/Documents/ticks/2023-2024/Project/datasets/mnist",
+            root_dir=root_dir,
         )
     
     config["imbalance"] = imbalance

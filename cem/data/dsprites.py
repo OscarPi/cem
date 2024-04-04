@@ -17,11 +17,15 @@ def quadrant_shape(latents):
 
     return c, y
 
-def load_dsprites(source, concepts_and_label, filter=lambda x: np.repeat(True, x.shape[0]), permutation=None):
+loaded_datasets = {}
+def load_dsprites(name, source, concepts_and_label, filter=None, permutation=None):
     dataset_zip = np.load(source)
 
     if permutation is None:
         permutation = np.random.permutation(len(dataset_zip["imgs"]))
+
+    if filter is None:
+        filter = lambda x: np.repeat(True, x.shape[0])
 
     permutation = permutation[filter(dataset_zip["latents_classes"][permutation])]
 
@@ -41,4 +45,8 @@ def load_dsprites(source, concepts_and_label, filter=lambda x: np.repeat(True, x
     val_dl = torch.utils.data.DataLoader(val_dataset, batch_size=512)
     test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=512)
 
+    loaded_datasets[name] = (train_dl, val_dl, test_dl)
     return train_dl, val_dl, test_dl
+
+def get_dsprites(name):
+    return loaded_datasets[name]
