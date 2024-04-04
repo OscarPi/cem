@@ -54,9 +54,9 @@ def load_dsprites(name, source, concepts_and_label, filter=None, permutation=Non
     train_dataset = torch.utils.data.TensorDataset(x_train, y_train, c_train)
     val_dataset = torch.utils.data.TensorDataset(x_val, y_val, c_val)
     test_dataset = torch.utils.data.TensorDataset(x_test, y_test, c_test)
-    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=512)
-    val_dl = torch.utils.data.DataLoader(val_dataset, batch_size=512)
-    test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=512)
+    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=256)
+    val_dl = torch.utils.data.DataLoader(val_dataset, batch_size=256)
+    test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=256)
 
     loaded_datasets[name] = (train_dl, val_dl, test_dl)
     return train_dl, val_dl, test_dl

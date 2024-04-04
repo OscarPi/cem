@@ -125,10 +125,8 @@ def get_mnist_config(selected_digits, threshold_labels, sampling_percent, recons
     }
 
 def get_dsprites_config(n_concepts, n_tasks, reconstruction_loss=True):
-    batch_size = 512
     return {
         **get_base_config(),
-        "batch_size": batch_size,
         "c_extractor_arch": get_dsprites_c_extractor_arch(),
         "reconstruction_arch": get_dsprites_reconstruction_arch() if reconstruction_loss else None,
         "n_concepts": n_concepts,
