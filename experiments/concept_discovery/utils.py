@@ -9,38 +9,24 @@ def get_dsprites_c_extractor_arch():
     def c_extractor_arch(output_dim):
         output_dim = output_dim or 128
         return torch.nn.Sequential(
-            torch.nn.Conv2d(in_channels=1, out_channels=16, kernel_size=(3,3), padding='same'),
-            torch.nn.BatchNorm2d(num_features=16),
-            torch.nn.LeakyReLU(),
-            torch.nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
-            torch.nn.BatchNorm2d(num_features=16),
-            torch.nn.LeakyReLU(),
-            torch.nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
-            torch.nn.BatchNorm2d(num_features=16),
-            torch.nn.LeakyReLU(),
-            torch.nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
-            torch.nn.BatchNorm2d(num_features=16),
-            torch.nn.LeakyReLU(),
             torch.nn.Flatten(),
-            torch.nn.Linear(64 * 64 * 16, output_dim)
+            torch.nn.Linear(64*64, 1200),
+            torch.nn.LeakyReLU(),
+            torch.nn.Linear(1200, 1200),
+            torch.nn.LeakyReLU(),
+            torch.nn.Linear(1200, output_dim),
         )
     return c_extractor_arch
 
 def get_dsprites_reconstruction_arch():
     def reconstruction_arch(bottleneck_size):
         return torch.nn.Sequential(
-            torch.nn.Linear(bottleneck_size, 64*64*16),
-            torch.nn.Unflatten(1, (16, 64, 64)),
+            torch.nn.Linear(bottleneck_size, 1200),
             torch.nn.LeakyReLU(),
-            torch.nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
-            torch.nn.BatchNorm2d(num_features=16),
+            torch.nn.Linear(1200, 1200),
             torch.nn.LeakyReLU(),
-            torch.nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
-            torch.nn.BatchNorm2d(num_features=16),
-            torch.nn.LeakyReLU(),
-            torch.nn.Flatten(),
-            torch.nn.Linear(64 * 64 * 16, 64*64),
-            torch.nn.Unflatten(1, (64, 64)),
+            torch.nn.Linear(1200, 64*64),
+            torch.nn.Unflatten(1, (1, 64, 64)),
             torch.nn.Sigmoid()
         )
 
@@ -78,7 +64,7 @@ def get_mnist_reconstruction_arch(input_shape, num_operands):
 
 def get_base_config():
     return {
-        "num_workers": 8,
+        "num_workers": 0,
         "weight_loss": True,
         "top_k_accuracy": None,
         "emb_size": 16,

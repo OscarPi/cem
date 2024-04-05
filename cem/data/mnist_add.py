@@ -641,7 +641,7 @@ loaded_dataset_metadata = {}
 def dls(n_digits, n_concepts, sum_as_label=False):
     if (n_digits, n_concepts, sum_as_label) not in loaded_datasets:
         config = {
-            "num_workers": 8,
+            "num_workers": 0,
             "selected_digits": [[0, 1]] * n_digits,
             "num_operands": n_digits,
             "threshold_labels": None if sum_as_label else int(np.ceil(n_digits / 2)),
