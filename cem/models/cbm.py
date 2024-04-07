@@ -19,7 +19,7 @@ class ConceptBottleneckModel(pl.LightningModule):
         n_tasks,
         concept_loss_weight=0.01,
         task_loss_weight=1,
-        reconstruction_loss_weight=0.01,
+        reconstruction_loss_weight=1,
 
         extra_dims=0,
         bool=False,
@@ -700,7 +700,12 @@ class ConceptBottleneckModel(pl.LightningModule):
             c_pred = outputs[1]
             x_hat = self.reconstruction_model(c_pred)
             reconstruction_loss = self.loss_reconstruction(x, x_hat)
-            reconstruction_loss = reconstruction_loss.sum(dim=list(range(1, reconstruction_loss.dim()))).mean(dim=[0])
+            if reconstruction_loss.dim() > 2:
+                reconstruction_loss = reconstruction_loss.sum(dim=list(range(2, reconstruction_loss.dim())))
+            if reconstruction_loss.dim() > 1:
+                reconstruction_loss = reconstruction_loss.mean(dim=[0, 1])
+            else:
+                reconstruction_loss = reconstruction_loss.mean()
             loss += self.reconstruction_loss_weight * reconstruction_loss
 
         # compute accuracy

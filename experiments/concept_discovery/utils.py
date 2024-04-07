@@ -99,7 +99,7 @@ def get_base_config():
         "imbalance": None
     }
 
-def get_mnist_config(selected_digits, threshold_labels, sampling_percent, reconstruction_loss=True):
+def get_mnist_config(selected_digits, threshold_labels, sampling_percent, reconstruction_loss=False):
     batch_size = 2048
     input_shape=(
         batch_size,
@@ -121,7 +121,7 @@ def get_mnist_config(selected_digits, threshold_labels, sampling_percent, recons
         "reconstruction_arch": get_mnist_reconstruction_arch(input_shape, len(selected_digits)) if reconstruction_loss else None
     }
 
-def get_dsprites_config(n_concepts, n_tasks, reconstruction_loss=True):
+def get_dsprites_config(n_concepts, n_tasks, reconstruction_loss=False):
     return {
         **get_base_config(),
         "c_extractor_arch": get_dsprites_c_extractor_arch(),
@@ -176,7 +176,7 @@ def train_model(config, train_dl, val_dl, test_dl, save_path):
         imbalance=config.get("imbalance", None)
     )
 
-def train_mnist_model(n_digits, n_concepts, save_path, sum_as_label=False, reconstruction_loss=True):
+def train_mnist_model(n_digits, n_concepts, save_path, sum_as_label=False, reconstruction_loss=False):
     mnist.dls(n_digits, n_concepts, sum_as_label)
     config = get_mnist_config(
         selected_digits=[[0, 1]] * n_digits,
@@ -192,7 +192,7 @@ def train_mnist_model(n_digits, n_concepts, save_path, sum_as_label=False, recon
         mnist.test_dl(n_digits, n_concepts, sum_as_label),
         save_path)
 
-def train_dsprites_model(dsprites_name, n_concepts, n_tasks, save_path, reconstruction_loss=True):
+def train_dsprites_model(dsprites_name, n_concepts, n_tasks, save_path, reconstruction_loss=False):
     train_dl, val_dl, test_dl = dsprites.get_dsprites(dsprites_name)
     config = get_dsprites_config(n_concepts, n_tasks, reconstruction_loss=reconstruction_loss)
     return train_model(config, train_dl, val_dl, test_dl, save_path)
